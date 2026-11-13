@@ -1,0 +1,319 @@
+import java.sql.*;
+import java.util.Scanner;
+
+public class Main {
+
+    static final String URL = "jdbc:mysql://localhost:3306/ZSRLab_db5r";
+    static final String USER = "root";
+    static final String PASSWORD = "Ferroli2004@.";
+
+    static Scanner sc = new Scanner(System.in);
+
+    public static void main(String[] args) {
+
+        int scelta;
+        do {
+            System.out.println("\n=== AUTOLAB JDBC ===");
+            System.out.println("1. Gestione Auto");
+            System.out.println("2. Gestione Proprietari");
+            System.out.println("3. Gestione Installazioni");
+            System.out.println("0. Esci");
+            System.out.print("Scelta: ");
+
+            scelta = sc.nextInt();
+            sc.nextLine();
+
+            switch (scelta) {
+                case 1 -> menuAuto();
+                case 2 -> menuProprietari();
+                case 3 -> menuInstalla();
+                case 0 -> System.out.println("Uscita...");
+                default -> System.out.println("Scelta non valida");
+            }
+        } while (scelta != 0);
+    }
+
+    // ======================= AUTO =======================
+
+    static void menuAuto() {
+        int scelta;
+        do {
+            System.out.println("\n--- GESTIONE AUTO ---");
+            System.out.println("1. Inserisci auto");
+            System.out.println("2. Visualizza auto");
+            System.out.println("3. Modifica colore auto");
+            System.out.println("4. Cancella auto");
+            System.out.println("0. Indietro");
+            scelta = sc.nextInt();
+            sc.nextLine();
+
+            switch (scelta) {
+                case 1 -> inserisciAuto();
+                case 2 -> visualizzaAuto();
+                case 3 -> modificaColoreAuto();
+                case 4 -> cancellaAuto();
+            }
+        } while (scelta != 0);
+    }
+
+    static void inserisciAuto() {
+        try (Connection c = DriverManager.getConnection(URL, USER, PASSWORD)) {
+
+            String sql = "INSERT INTO AUTO VALUES (?, ?, ?, ?, ?, ?, ?)";
+            PreparedStatement ps = c.prepareStatement(sql);
+
+            System.out.print("Targa: ");
+            ps.setString(1, sc.nextLine());
+            System.out.print("Marca: ");
+            ps.setString(2, sc.nextLine());
+            System.out.print("Modello: ");
+            ps.setString(3, sc.nextLine());
+            System.out.print("Anno: ");
+            ps.setInt(4, sc.nextInt());
+            System.out.print("Cilindrata: ");
+            ps.setInt(5, sc.nextInt());
+            sc.nextLine();
+            System.out.print("Colore: ");
+            ps.setString(6, sc.nextLine());
+            System.out.print("ID Proprietario: ");
+            ps.setInt(7, sc.nextInt());
+            sc.nextLine();
+
+            ps.executeUpdate();
+            System.out.println("Auto inserita correttamente");
+
+        } catch (SQLException e) {
+            System.out.println("Errore: " + e.getMessage());
+        }
+    }
+
+    static void visualizzaAuto() {
+        try (Connection c = DriverManager.getConnection(URL, USER, PASSWORD)) {
+
+            ResultSet rs = c.createStatement().executeQuery("SELECT * FROM AUTO");
+
+            while (rs.next()) {
+                System.out.println(
+                        rs.getString("targa") + " | " +
+                                rs.getString("marca") + " | " +
+                                rs.getString("modello") + " | " +
+                                rs.getString("colore")
+                );
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    static void modificaColoreAuto() {
+        try (Connection c = DriverManager.getConnection(URL, USER, PASSWORD)) {
+
+            String sql = "UPDATE AUTO SET colore = ? WHERE targa = ?";
+            PreparedStatement ps = c.prepareStatement(sql);
+
+            System.out.print("Targa auto: ");
+            String targa = sc.nextLine();
+            System.out.print("Nuovo colore: ");
+            String colore = sc.nextLine();
+
+            ps.setString(1, colore);
+            ps.setString(2, targa);
+
+            int righe = ps.executeUpdate();
+            if (righe > 0)
+                System.out.println("Colore aggiornato");
+            else
+                System.out.println("Auto non trovata");
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    static void cancellaAuto() {
+        try (Connection c = DriverManager.getConnection(URL, USER, PASSWORD)) {
+
+            System.out.print("Targa da cancellare: ");
+            String targa = sc.nextLine();
+
+            PreparedStatement ps =
+                    c.prepareStatement("DELETE FROM AUTO WHERE targa=?");
+            ps.setString(1, targa);
+
+            ps.executeUpdate();
+            System.out.println("Auto cancellata");
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    // ======================= PROPRIETARI =======================
+
+    static void menuProprietari() {
+        int scelta;
+        do {
+            System.out.println("\n--- GESTIONE PROPRIETARI ---");
+            System.out.println("1. Inserisci proprietario");
+            System.out.println("2. Visualizza proprietari");
+            System.out.println("3. Cancella proprietario");
+            System.out.println("0. Indietro");
+            scelta = sc.nextInt();
+            sc.nextLine();
+
+            switch (scelta) {
+                case 1 -> inserisciProprietario();
+                case 2 -> visualizzaProprietari();
+                case 3 -> cancellaProprietario();
+            }
+        } while (scelta != 0);
+    }
+
+    static void inserisciProprietario() {
+        try (Connection c = DriverManager.getConnection(URL, USER, PASSWORD)) {
+
+            String sql = "INSERT INTO PROPRIETARIO(nome, cognome, telefono) VALUES (?, ?, ?)";
+            PreparedStatement ps = c.prepareStatement(sql);
+
+            System.out.print("Nome: ");
+            ps.setString(1, sc.nextLine());
+            System.out.print("Cognome: ");
+            ps.setString(2, sc.nextLine());
+            System.out.print("Telefono: ");
+            ps.setString(3, sc.nextLine());
+
+            ps.executeUpdate();
+            System.out.println("Proprietario inserito");
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    static void visualizzaProprietari() {
+        try (Connection c = DriverManager.getConnection(URL, USER, PASSWORD)) {
+
+            ResultSet rs = c.createStatement()
+                    .executeQuery("SELECT * FROM PROPRIETARIO");
+
+            while (rs.next()) {
+                System.out.println(
+                        rs.getInt("idProprietario") + " | " +
+                                rs.getString("nome") + " " +
+                                rs.getString("cognome")
+                );
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    static void cancellaProprietario() {
+        try (Connection c = DriverManager.getConnection(URL, USER, PASSWORD)) {
+
+            System.out.print("ID Proprietario: ");
+            int id = sc.nextInt();
+            sc.nextLine();
+
+            PreparedStatement ps =
+                    c.prepareStatement("DELETE FROM PROPRIETARIO WHERE idProprietario=?");
+            ps.setInt(1, id);
+
+            ps.executeUpdate();
+            System.out.println("Proprietario cancellato");
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    // ======================= INSTALLA =======================
+
+    static void menuInstalla() {
+        int scelta;
+        do {
+            System.out.println("\n--- GESTIONE INSTALLAZIONI ---");
+            System.out.println("1. Registra installazione");
+            System.out.println("2. Visualizza installazioni");
+            System.out.println("3. Cancella installazione");
+            System.out.println("0. Indietro");
+            scelta = sc.nextInt();
+            sc.nextLine();
+
+            switch (scelta) {
+                case 1 -> inserisciInstallazione();
+                case 2 -> visualizzaInstallazioni();
+                case 3 -> cancellaInstallazione();
+            }
+        } while (scelta != 0);
+    }
+
+    static void inserisciInstallazione() {
+        try (Connection c = DriverManager.getConnection(URL, USER, PASSWORD)) {
+
+            String sql = "INSERT INTO INSTALLA VALUES (?, ?, ?, ?)";
+            PreparedStatement ps = c.prepareStatement(sql);
+
+            System.out.print("Targa: ");
+            ps.setString(1, sc.nextLine());
+            System.out.print("ID Modifica: ");
+            ps.setInt(2, sc.nextInt());
+            sc.nextLine();
+            System.out.print("Data (YYYY-MM-DD): ");
+            ps.setDate(3, Date.valueOf(sc.nextLine()));
+            System.out.print("Costo: ");
+            ps.setDouble(4, sc.nextDouble());
+            sc.nextLine();
+
+            ps.executeUpdate();
+            System.out.println("Installazione registrata");
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    static void visualizzaInstallazioni() {
+        try (Connection c = DriverManager.getConnection(URL, USER, PASSWORD)) {
+
+            ResultSet rs = c.createStatement()
+                    .executeQuery("SELECT * FROM INSTALLA");
+
+            while (rs.next()) {
+                System.out.println(
+                        rs.getString("targa") + " | " +
+                                rs.getInt("idModifica") + " | " +
+                                rs.getDate("dataInstallazione") + " | " +
+                                rs.getDouble("costoManodopera")
+                );
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    static void cancellaInstallazione() {
+        try (Connection c = DriverManager.getConnection(URL, USER, PASSWORD)) {
+
+            System.out.print("Targa: ");
+            String targa = sc.nextLine();
+            System.out.print("ID Modifica: ");
+            int id = sc.nextInt();
+            sc.nextLine();
+
+            PreparedStatement ps =
+                    c.prepareStatement("DELETE FROM INSTALLA WHERE targa=? AND idModifica=?");
+            ps.setString(1, targa);
+            ps.setInt(2, id);
+
+            ps.executeUpdate();
+            System.out.println("Installazione cancellata");
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+}
